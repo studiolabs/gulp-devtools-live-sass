@@ -1,0 +1,34 @@
+{
+  "name": "gulp-devtools-live-sass",
+  "version": "0.0.1",
+  "description": "a gulp plugin to use sass with devtools live",
+  "main": "sass.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StudioLabs/gulp-devtools-live-sass.git"
+  },
+  "keywords": [
+    "devtools",
+    "live",
+    "sass"
+  ],
+  "author": "Steed Monteiro <steed.monteiro@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/StudioLabs/gulp-devtools-live-sass/issues"
+  },
+  "homepage": "https://github.com/StudioLabs/gulp-devtools-live-sass",
+  "dependencies": {
+    "convert-source-map": "^1.2.0",
+    "event-stream": "^3.3.2",
+    "sass-unpack": "^0.3.4",
+    "source-map": "^0.5.3",
+    "through2": "^2.0.0",
+    "utf8": "^2.1.1",
+    "vinyl": "^1.1.1"
+  },
+  "devDependencies": {}
+}
