@@ -98,7 +98,7 @@ SassDevToolsFile.prototype.cleanSourceMap = function(sassContent, sourceContent)
  		var path = m.source.replace(sourcemap.sourceRoot, '');
 		var filepath =  Module._findPath(path, [sassUnpack.rootDir, sassUnpack.sourceDir]).replace(sassUnpack.sourceDir, '');
 		generator.addMapping({
-						  source: '/'+path,
+						  source: '/'+filepath,
 						  original: { line: m.originalLine, column: m.originalColumn },
 						  generated: { line: m.generatedLine , column: m.generatedColumn }
 						});
@@ -116,15 +116,15 @@ SassDevToolsFile.prototype.cleanSourceMap = function(sassContent, sourceContent)
 
 	sourcemap.sourceRoot = '/';
 
-	var inline = convertSourceMap.fromObject(sourcemap).toComment({multiline:true});
+	return convertSourceMap.fromObject(sourcemap).toComment({multiline:true});
 
-	return convertSourceMap.removeComments(sassContent) +'\n'+ inline;
 };
 
 SassDevToolsFile.prototype.saveFile = function(filepath, sassContent) {
-	var content = this.cleanSourceMap(sassContent);
-	process.fs.writeFileSync(filepath, content);
+	var inline = this.cleanSourceMap(sassContent);
+	var content = convertSourceMap.removeComments(sassContent);
 
+	process.fs.writeFileSync(filepath, content+'\n'+ inline);
 	return content;
 }
 
@@ -149,6 +149,7 @@ SassDevToolsFile.prototype.pushFile = function(sassContent) {
 	this.file.sync = originalFileContent;
 
 	record.content = this.saveFile(this.file.output, sassContent, originalFileContent);
+
 
 	this.devtoolsLive.broadcast(record);
 
