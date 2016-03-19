@@ -118,8 +118,6 @@ SassDevToolsFile.prototype.cleanSourceMap = function(sassContent, sourceContent)
 
 	var inline = convertSourceMap.fromObject(sourcemap).toComment({multiline:true});
 
-	console.log(convertSourceMap.fromComment(inline).toObject());
-
 	return convertSourceMap.removeComments(sassContent) +'\n'+ inline;
 };
 
