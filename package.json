@@ -1,7 +1,7 @@
 {
   "name": "gulp-devtools-live-sass",
   "version": "0.0.1",
-  "description": "a gulp plugin to use sass with devtools live",
+  "description": "Gulp plugin to use sass with devtools live",
   "main": "sass.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
