@@ -144,7 +144,7 @@ SassDevToolsFile.prototype.pushFile = function(sassContent) {
 		record.resourceName = this.devtoolsLive.getClientHostname() + '/' + this.file.name;
 	}
 
-	record.event = this.file.variable;
+	record.event = this.file.name.replace(/([\/|\.|\-])/g, '_');
 
 	this.file.sync = originalFileContent;
 
