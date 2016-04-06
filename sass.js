@@ -63,7 +63,7 @@ SassDevTools.prototype.loadMap = function(sassMap) {
 SassDevTools.prototype.resolve = function(devtoolsLive, file) {
 	for (var i in devtoolsLive.sassLinks[file.path]) {
 		var filepath = devtoolsLive.sassLinks[file.path][i];
-		var fileTmp =  devtoolsLive.dev[filepath];
+		var fileTmp =  devtoolsLive.tmp[filepath];
 
 		var  sassDevToolsTmpFile = new SassDevToolsFile(devtoolsLive, fileTmp);
 		this.cmd(
@@ -106,8 +106,11 @@ SassDevToolsFile.prototype.cleanSourceMap = function(sassContent, sourceContent)
 	}.bind(this), {}, consumer.ORIGINAL_ORDER);
 
 	for(var i in sourcemap.sources){
- 		var path = sassUnpack.rootDir + sourcemap.sources[i].replace(sourcemap.sourceRoot, '');
- 		var filepath =  Module._findPath(path, [sassUnpack.rootDir, sassUnpack.sourceDir]).replace(sassUnpack.sourceDir, '');
+
+ 		var path = sourcemap.sources[i].replace(sourcemap.sourceRoot, '').replace(sassUnpack.rootDir, '');
+ 		path = Module._findPath(path, [sassUnpack.rootDir, sassUnpack.sourceDir]);
+ 		var filepath =  path.replace(sassUnpack.sourceDir, '');
+
  		sourcemap.sources[i]=filepath;
 	}
 
@@ -123,28 +126,28 @@ SassDevToolsFile.prototype.cleanSourceMap = function(sassContent, sourceContent)
 SassDevToolsFile.prototype.saveFile = function(filepath, sassContent) {
 	var inline = this.cleanSourceMap(sassContent);
 	var content = convertSourceMap.removeComments(sassContent);
-
 	process.fs.writeFileSync(filepath, content+'\n'+ inline);
+
 	return content;
 }
 
 SassDevToolsFile.prototype.pushFile = function(sassContent) {
 	var record = {
 			action: 'update',
-			resourceURL: this.devtoolsLive.getClientPageUrl() + this.file.url
+			url: this.devtoolsLive.getClientPageUrl() + this.file.url
 		};
 
 	var originalFileContent = '';
 	if (this.file.content === undefined) {
 		originalFileContent = utf8.encode(fs.readFileSync(this.file.path).toString());
-		record.sync = this.devtoolsLive.getClientHostname() + '/' + this.file.name;
+		record.sync = this.devtoolsLive.getClientHostname() + '/' + this.file.src;
 	} else {
 		originalFileContent = this.file.content;
 		delete this.file.content;
-		record.resourceName = this.devtoolsLive.getClientHostname() + '/' + this.file.name;
+		record.src = this.devtoolsLive.getClientHostname() + '/' + this.file.src;
 	}
 
-	record.event = this.file.name.replace(/([\/|\.|\-])/g, '_');
+	record.event = this.file.event;
 
 	this.file.sync = originalFileContent;
 
@@ -182,7 +185,7 @@ SassDevToolsFile.prototype.createWriteStream = function() {
 };
 
 SassDevToolsFile.prototype.createFileStream = function() {
-	var data = process.fs.readFileSync(this.file.dev);
+	var data = process.fs.readFileSync(this.file.tmp);
 
 	var file = new File({
 		path: this.file.path,
