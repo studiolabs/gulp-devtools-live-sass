@@ -137,24 +137,18 @@ SassDevToolsFile.prototype.pushFile = function(sassContent) {
 			url: this.devtoolsLive.getClientPageUrl() + this.file.url
 		};
 
-	var originalFileContent = '';
-	if (this.file.content === undefined) {
-		originalFileContent = utf8.encode(fs.readFileSync(this.file.path).toString());
-		record.sync = this.devtoolsLive.getClientHostname() + '/' + this.file.src;
-	} else {
-		originalFileContent = this.file.content;
-		delete this.file.content;
-		record.src = this.devtoolsLive.getClientHostname() + '/' + this.file.src;
-	}
+		if (this.file.content === undefined) {
+			record.sync = this.devtoolsLive.getClientHostname() + '/' + this.file.src;
+		} else {
+			record.resourceName = this.devtoolsLive.getClientHostname() + '/' + this.file.src;
+			delete this.file.content;
+		}
 
-	record.event = this.file.event;
+		record.event = this.file.src;
 
-	this.file.sync = originalFileContent;
+		record.content = this.saveFile(this.file.output, sassContent);
 
-	record.content = this.saveFile(this.file.output, sassContent, originalFileContent);
-
-
-	this.devtoolsLive.broadcast(record);
+		this.devtoolsLive.broadcast(record);
 
 };
 
