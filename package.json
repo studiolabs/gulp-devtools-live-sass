@@ -1,6 +1,6 @@
 {
   "name": "gulp-devtools-live-sass",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Gulp plugin to use sass with devtools live",
   "main": "sass.js",
   "scripts": {
@@ -24,7 +24,7 @@
   "dependencies": {
     "convert-source-map": "^1.2.0",
     "event-stream": "^3.3.2",
-    "sass-unpack": "^0.4.2",
+    "sass-unpack": "^0.4.3",
     "source-map": "^0.5.3",
     "through2": "^2.0.0",
     "utf8": "^2.1.1",
