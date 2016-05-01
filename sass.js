@@ -43,26 +43,24 @@ SassDevTools.prototype.loadMap = function(sassMap) {
 	var map = sassMap.map;
 	this.devtoolsLive.sassLinks = sassMap.links;
 	var today = new Date().getTime();
-	var stream = null;
+	this.tasks = 0;
 	for (var i in map) {
 		map[i].plugin = this;
 		map[i].output = this.output + '/' + map[i].url;
 
 		this.devtoolsLive.registerFile(map[i]);
 
-		var  sassDevToolsTmpFile = new SassDevToolsFile(this.devtoolsLive, map[i]);
-		stream = sassDevToolsTmpFile.createWriteStream();
+		var  sassDevToolsTmpFile = new SassDevToolsFile(this.devtoolsLive, map[i], this);
 		this.cmd(
-			sassDevToolsTmpFile.createFileStream(map[i]),
-			stream,
+			sassDevToolsTmpFile.createFileStream(),
+			sassDevToolsTmpFile.createWriteStream(),
 			this.devtoolsLive.onError
 		);
 
 		process.live['sass'] += "\n<link rel='stylesheet' href='/" + map[i].url + "?" + today + "' />";
 	}
 
-	if(this.stream !== undefined){
-		console.log('sass finished');
+	if(map.length == 0){
 		this.devtoolsLive.streamFinished(this);
 	}
 
@@ -73,21 +71,21 @@ SassDevTools.prototype.resolve = function(devtoolsLive, file) {
 		var filepath = devtoolsLive.sassLinks[file.path][i];
 		var fileTmp =  devtoolsLive.tmp[filepath];
 
-		var  sassDevToolsTmpFile = new SassDevToolsFile(devtoolsLive, fileTmp);
+		var  sassDevToolsTmpFile = new SassDevToolsFile(devtoolsLive, fileTmp, this);
 		this.cmd(
-			sassDevToolsTmpFile.createFileStream(fileTmp),
+			sassDevToolsTmpFile.createFileStream(),
 			sassDevToolsTmpFile.createWriteAndPushStream(),
 			devtoolsLive.onError
 		);
 	}
 
 
-
 };
 
-function SassDevToolsFile(devtoolsLive, file) {
+function SassDevToolsFile(devtoolsLive, file, sassDevTools) {
 	this.file = file;
 	this.devtoolsLive = devtoolsLive;
+	this.sassDevTools = sassDevTools;
 }
 
 SassDevToolsFile.prototype.cleanSourceMap = function(sassContent, sourceContent) {
@@ -138,6 +136,13 @@ SassDevToolsFile.prototype.saveFile = function(filepath, sassContent) {
 	var content = convertSourceMap.removeComments(sassContent);
 	process.fs.writeFileSync(filepath, content+'\n'+ inline);
 
+	if(this.sassDevTools.tasks > 0){
+		this.sassDevTools.tasks--;
+		if(this.sassDevTools.tasks == 0){
+			this.devtoolsLive.streamFinished(this.sassDevTools);
+		}
+	}
+
 	return content;
 }
 
@@ -159,6 +164,16 @@ SassDevToolsFile.prototype.pushFile = function(sassContent) {
 		record.content = this.saveFile(this.file.output, sassContent);
 
 		this.devtoolsLive.broadcast(record);
+
+
+		if(this.sassDevTools.tasks > 0){
+			this.sassDevTools.tasks--;
+			if(this.sassDevTools.tasks == 0){
+				this.devtoolsLive.streamFinished(this.sassDevTools);
+			}
+		}
+
+
 
 };
 
@@ -191,8 +206,11 @@ SassDevToolsFile.prototype.createWriteStream = function() {
 SassDevToolsFile.prototype.createFileStream = function() {
 	var data = process.fs.readFileSync(this.file.tmp);
 
+	this.sassDevTools.tasks++;
+
+
 	var file = new File({
-		path: this.file.path,
+		path: this.file.src,
 		contents: ((data instanceof Buffer) ? data : new Buffer(data))
 	});
 
