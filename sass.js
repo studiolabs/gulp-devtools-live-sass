@@ -32,6 +32,8 @@ SassDevTools.prototype.init = function(devtoolsLive) {
 		mkdir: process.fs.mkdirpSync.bind(process.fs),
 		write: process.fs.writeFileSync.bind(process.fs)
 	});
+
+
 	this.devtoolsLive = devtoolsLive;
 
 	var sassMap = sassUnpack.unpack();
@@ -41,9 +43,11 @@ SassDevTools.prototype.init = function(devtoolsLive) {
 SassDevTools.prototype.loadMap = function(sassMap) {
 	process.live['sass'] = "";
 	var map = sassMap.map;
+
 	this.devtoolsLive.sassLinks = sassMap.links;
 	var today = new Date().getTime();
 	this.tasks = 0;
+
 	for (var i in map) {
 		map[i].plugin = this;
 		map[i].output = this.output + '/' + map[i].url;
@@ -67,17 +71,34 @@ SassDevTools.prototype.loadMap = function(sassMap) {
 };
 
 SassDevTools.prototype.resolve = function(devtoolsLive, file) {
-	for (var i in devtoolsLive.sassLinks[file.path]) {
-		var filepath = devtoolsLive.sassLinks[file.path][i];
-		var fileTmp =  devtoolsLive.tmp[filepath];
 
-		var  sassDevToolsTmpFile = new SassDevToolsFile(devtoolsLive, fileTmp, this);
-		this.cmd(
-			sassDevToolsTmpFile.createFileStream(),
-			sassDevToolsTmpFile.createWriteAndPushStream(),
-			devtoolsLive.onError
-		);
+
+	if(file.path == this.src){
+		sassUnpack.unpack();
 	}
+
+	if(devtoolsLive.sassLinks[file.path] !== undefined ){
+		for (var i in devtoolsLive.sassLinks[file.path]) {
+			var filepath = devtoolsLive.sassLinks[file.path][i];
+			this.exec(devtoolsLive, filepath);
+		}
+	}else{
+		this.exec(devtoolsLive, file);
+	}
+};
+
+SassDevTools.prototype.exec = function(devtoolsLive, file) {
+
+
+
+	var  sassDevToolsTmpFile = new SassDevToolsFile(devtoolsLive, file, this);
+
+	this.cmd(
+		sassDevToolsTmpFile.createFileStream(),
+		sassDevToolsTmpFile.createWriteAndPushStream(),
+		devtoolsLive.onError
+	);
+
 
 
 };
@@ -147,6 +168,7 @@ SassDevToolsFile.prototype.saveFile = function(filepath, sassContent) {
 }
 
 SassDevToolsFile.prototype.pushFile = function(sassContent) {
+
 	var record = {
 			action: 'update',
 			url: this.devtoolsLive.getClientPageUrl() + this.file.url
@@ -204,6 +226,7 @@ SassDevToolsFile.prototype.createWriteStream = function() {
 };
 
 SassDevToolsFile.prototype.createFileStream = function() {
+
 	var data = process.fs.readFileSync(this.file.tmp);
 
 	this.sassDevTools.tasks++;
