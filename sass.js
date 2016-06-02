@@ -48,6 +48,7 @@ SassDevTools.prototype.loadMap = function(sassMap) {
 	var today = new Date().getTime();
 	this.tasks = 0;
 
+
 	for (var i in map) {
 		map[i].plugin = this;
 		map[i].output = this.output + '/' + map[i].url;
@@ -64,6 +65,24 @@ SassDevTools.prototype.loadMap = function(sassMap) {
 		process.live['sass'] += "\n<link rel='stylesheet' href='/" + map[i].url + "?" + today + "' />";
 	}
 
+
+	for (var i in sassMap.links) {
+
+		var parent = this.devtoolsLive.tmp[sassMap.links[i]];
+
+		var file = {
+		    path: i,
+	    	url: parent.url,
+	      	tmp : parent.tmp,
+	      	src : i.replace(sassUnpack.sourceDir, '')
+		};
+		file.plugin = this;
+		file.output = this.output + '/' + file.url;
+
+		this.devtoolsLive.registerFile(file);
+
+	}
+
 	if(map.length == 0){
 		this.devtoolsLive.streamFinished(this);
 	}
@@ -72,34 +91,24 @@ SassDevTools.prototype.loadMap = function(sassMap) {
 
 SassDevTools.prototype.resolve = function(devtoolsLive, file) {
 
-
 	if(file.path == this.src){
 		sassUnpack.unpack();
 	}
 
-	if(devtoolsLive.sassLinks[file.path] !== undefined ){
-		for (var i in devtoolsLive.sassLinks[file.path]) {
-			var filepath = devtoolsLive.sassLinks[file.path][i];
-			this.exec(devtoolsLive, filepath);
-		}
-	}else{
-		this.exec(devtoolsLive, file);
-	}
+	this.exec(devtoolsLive, file);
+
 };
 
-SassDevTools.prototype.exec = function(devtoolsLive, file) {
+SassDevTools.prototype.exec = function(devtoolsLive, filepath) {
 
 
-
-	var  sassDevToolsTmpFile = new SassDevToolsFile(devtoolsLive, file, this);
+	var  sassDevToolsTmpFile = new SassDevToolsFile(devtoolsLive, filepath, this);
 
 	this.cmd(
 		sassDevToolsTmpFile.createFileStream(),
 		sassDevToolsTmpFile.createWriteAndPushStream(),
 		devtoolsLive.onError
 	);
-
-
 
 };
 
