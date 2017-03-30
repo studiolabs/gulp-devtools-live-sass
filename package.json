@@ -1,6 +1,6 @@
 {
   "name": "gulp-devtools-live-sass",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Gulp plugin to use sass with devtools live",
   "main": "sass.js",
   "scripts": {
